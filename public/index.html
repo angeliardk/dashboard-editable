@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Editable · Webinar 1 · Literasi Nuklir PLN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#102a52; --blue:#1f4e79; --blue2:#2e75b6; --blue-soft:#dbe7f3;
+    --ink:#16202e; --muted:#5b6b80; --line:#e4e9f0; --bg:#eef2f7; --card:#ffffff;
+    --amber:#e3922b; --amber-soft:#f7e4c6; --green:#2e7d32; --green-soft:#dcefdd;
+    --red:#b3261e; --red-soft:#f4d9d7; --purple:#6b4ea3; --purple-soft:#e7e0f3;
+    --shadow:0 1px 2px rgba(16,42,82,.06),0 6px 20px rgba(16,42,82,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px 64px}
+  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif}
+
+  .toolbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .toolbar .row{max-width:1180px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .brand{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--navy);font-size:14px;margin-right:6px}
+  .brand span{color:var(--amber)}
+  .tabs{display:flex;background:#eef2f7;border:1px solid var(--line);border-radius:10px;padding:3px}
+  .tabs button{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;border:0;background:transparent;color:var(--muted);padding:6px 16px;border-radius:8px;cursor:pointer}
+  .tabs button.active{background:var(--navy);color:#fff}
+  .tb-spacer{flex:1}
+  .btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 13px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+  .btn:hover{border-color:var(--blue2);color:var(--blue)}
+  .btn.warn:hover{border-color:var(--red);color:var(--red)}
+  .save-state{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .save-state .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+  .save-state.dirty .dot{background:var(--amber)}
+
+  header.hd{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;padding:30px 0 28px;position:relative;overflow:hidden}
+  header.hd::after{content:"";position:absolute;right:-80px;top:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle at center, rgba(227,146,43,.30), transparent 62%)}
+  .eyebrow{font-family:'Space Grotesk',sans-serif;letter-spacing:.16em;text-transform:uppercase;font-size:11.5px;font-weight:600;color:#a9c4e6}
+  header.hd h1{font-weight:700;font-size:27px;margin:.35em 0 .15em;line-height:1.14}
+  header.hd .sub{color:#cad9ec;font-size:14px;max-width:760px}
+  .meta{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:14px;font-size:12.5px;color:#bcd0ea}
+  .meta b{color:#fff;font-weight:600}.meta .sep{opacity:.4}
+
+  .reach{margin-top:-24px;position:relative;z-index:2}
+  .reach-card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 24px}
+  .reach-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px;margin-bottom:13px}
+  .reach-head .label{font-family:'Space Grotesk',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+  .reach-head .big{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:32px;color:var(--navy);line-height:1}
+  .reach-head .big small{font-size:14px;color:var(--muted);font-weight:500;margin-left:6px}
+  .bar-track{position:relative;height:28px;background:#f1f4f9;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .bar-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--amber),#f0b25b);border-radius:6px 0 0 6px;min-width:5px}
+  .bar-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;font-family:'Space Grotesk',sans-serif}
+  .reach-note{margin-top:11px;font-size:12.5px;color:var(--muted)}.reach-note b{color:var(--ink)}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-top:17px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+  .kpi .k-top{font-size:11.5px;color:var(--muted);font-weight:500;min-height:30px}
+  .kpi .k-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:25px;color:var(--navy);line-height:1;margin-top:5px}
+  .kpi .k-val small{font-size:12.5px;color:var(--muted);font-weight:500}
+  .kpi .k-sub{font-size:11px;margin-top:5px;color:var(--muted)}
+  .kpi.pos .k-val{color:var(--green)}
+  .tag{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;margin-top:7px}
+  .tag.g{background:var(--green-soft);color:var(--green)}.tag.a{background:var(--amber-soft);color:#9a5e12}.tag.b{background:var(--blue-soft);color:var(--blue)}
+
+  .sec-eb{display:flex;align-items:center;gap:12px;margin:36px 0 4px}
+  .sec-eb .num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;color:#fff;background:var(--blue);width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none}
+  .sec-eb h2{font-size:18px;margin:0;color:var(--navy);font-weight:600}
+  .sec-eb p{margin:0 0 0 auto;font-size:12.5px;color:var(--muted)}
+  .grid{display:grid;gap:16px;margin-top:14px}
+  .g-2{grid-template-columns:1.4fr 1fr}.g-2e{grid-template-columns:1fr 1fr}.g-21{grid-template-columns:1fr 1.5fr}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px}
+  .panel h3{font-size:14.5px;margin:0 0 2px;color:var(--ink);font-weight:600}
+  .panel .cap{font-size:12px;color:var(--muted);margin:0 0 12px}
+  .chart-box{position:relative;height:240px}.chart-box.tall{height:300px}.chart-box.short{height:200px}.chart-box.xtall{height:340px}
+
+  .callout{border-left:4px solid var(--amber);background:#fffaf2;border-radius:10px;padding:13px 15px;font-size:12.5px}
+  .callout b{color:var(--navy)}.callout.b{border-left-color:var(--blue2);background:#f4f8fc}.callout.g{border-left-color:var(--green);background:#f4faf4}
+  .mini-stats{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+  .mini{flex:1;min-width:110px;background:#f7f9fc;border:1px solid var(--line);border-radius:10px;padding:11px}
+  .mini .m-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;color:var(--navy)}
+  .mini .m-lab{font-size:11px;color:var(--muted);margin-top:3px}
+
+  table.disp{width:100%;border-collapse:collapse;font-size:13px}
+  table.disp th,table.disp td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.disp th{font-family:'Space Grotesk',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+  table.disp td.num,table.disp th.num{text-align:right;font-family:'Space Grotesk',sans-serif}
+  .rank-badge{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;background:var(--blue-soft);color:var(--blue)}
+  .rank-badge.top{background:var(--amber);color:#fff}
+  .delta{font-family:'Space Grotesk',sans-serif;font-weight:600}
+  .ul{margin:0;padding-left:18px;font-size:13px}.ul li{margin-bottom:6px}
+  .chip{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+  .chip.Materi{background:var(--blue-soft);color:var(--blue)}
+  .chip.Narasumber{background:var(--purple-soft);color:var(--purple)}
+  .chip.Program{background:var(--amber-soft);color:#9a5e12}
+  .chip.Apresiasi{background:var(--green-soft);color:var(--green)}
+  .chip.Lainnya{background:#eceff3;color:var(--muted)}
+  .chip.Saran{background:#fdf0e0;color:#9a5e12}
+
+  .scale-legend{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .scale-legend .sl{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);background:#f7f9fc;border:1px solid var(--line);border-radius:20px;padding:3px 10px}
+  .scale-legend .sw{width:10px;height:10px;border-radius:3px}
+
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:14px}
+  .three .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px}
+  .three .card h4{font-size:13.5px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .three .card .ic{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:14px;flex:none}
+  .ic.s{background:var(--green-soft)}.ic.i{background:var(--amber-soft)}.ic.r{background:var(--blue-soft)}
+
+  .fb-list{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+  .fb-row{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);font-size:12.5px;align-items:flex-start}
+  .fb-row:last-child{border-bottom:0}
+  .fb-row .txt{flex:1}
+  .fb-tags{display:flex;gap:5px;flex-wrap:wrap;flex:none}
+
+  .ins{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .ins .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px}
+  .ins h4{font-size:13.5px;margin:0 0 8px;color:var(--navy)}
+  footer.foot{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+  /* EDITOR */
+  .editor-intro{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:12px;padding:16px 18px;margin-top:22px;font-size:13px}
+  .editor-intro b{color:var(--navy)}
+  .ed-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  .ed-card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px}
+  .ed-card.full{grid-column:1/-1}
+  .ed-card h3{font-size:14px;margin:0 0 3px;color:var(--navy);display:flex;align-items:center;gap:8px}
+  .ed-card h3 .hh{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:#fff;background:var(--blue);padding:2px 7px;border-radius:6px;flex:none}
+  .ed-card .hint{font-size:11.5px;color:var(--muted);margin:0 0 12px}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px}
+  .field{display:flex;flex-direction:column;gap:3px}
+  .field.wide{grid-column:1/-1}
+  .field label{font-size:11.5px;color:var(--muted);font-weight:500}
+  .field input,.field textarea{font-family:Inter,sans-serif;font-size:13px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fbfcfe;color:var(--ink)}
+  .field input:focus,.field textarea:focus,.etbl input:focus,.etbl select:focus,.etbl textarea:focus{outline:0;border-color:var(--blue2);background:#fff;box-shadow:0 0 0 3px rgba(46,117,182,.12)}
+  table.etbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  table.etbl th{font-family:'Space Grotesk',sans-serif;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:600;text-align:left;padding:4px 6px}
+  table.etbl td{padding:3px 4px;vertical-align:top}
+  .etbl input,.etbl select,.etbl textarea{width:100%;font-family:Inter,sans-serif;font-size:12.5px;padding:5px 7px;border:1px solid var(--line);border-radius:7px;background:#fbfcfe}
+  .etbl textarea{resize:vertical;min-height:34px}
+  .etbl input.num{text-align:right;font-family:'Space Grotesk',sans-serif}
+  .etbl .del{border:0;background:var(--red-soft);color:var(--red);width:24px;height:24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;line-height:1}
+  .etbl .del:hover{background:var(--red);color:#fff}
+  .add-row{margin-top:8px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;border:1px dashed var(--blue2);background:#f4f8fc;color:var(--blue);padding:6px 12px;border-radius:8px;cursor:pointer}
+  .add-row:hover{background:var(--blue-soft)}
+  .view{display:none}.view.active{display:block}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;font-family:'Space Grotesk',sans-serif;font-weight:500;box-shadow:0 8px 30px rgba(16,42,82,.3);opacity:0;transition:.25s;pointer-events:none;z-index:100}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .g-2,.g-2e,.g-21,.ins,.ed-grid,.three{grid-template-columns:1fr}
+    .sec-eb p{display:none}.field-grid{grid-template-columns:1fr}
+  }
+  @media print{.toolbar{display:none}#view-editor{display:none!important}header.hd{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="row">
+    <div class="brand">PLN <span>·</span> Dashboard Editable</div>
+    <div class="tabs">
+      <button id="tab-dash" class="active" onclick="switchView('dash')">Dashboard</button>
+      <button id="tab-editor" onclick="switchView('editor')">Editor Data</button>
+    </div>
+    <div class="tb-spacer"></div>
+    <span class="save-state" id="saveState"><span class="dot"></span><span id="saveText">Tersimpan otomatis</span></span>
+    <button class="btn" onclick="exportJSON()">⬇ Ekspor data (JSON)</button>
+    <button class="btn" onclick="document.getElementById('importFile').click()">⬆ Impor data</button>
+    <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importJSON(event)">
+    <button class="btn" onclick="window.print()">🖨 Cetak / PDF</button>
+    <button class="btn warn" onclick="resetData()">↺ Reset ke data asli</button>
+  </div>
+</div>
+
+<!-- ===================== DASHBOARD ===================== -->
+<div id="view-dash" class="view active">
+<header class="hd">
+  <div class="wrap" style="padding-bottom:0">
+    <div class="eyebrow">PLN Puslitbang · Evaluasi Webinar</div>
+    <h1 id="hdTitle"></h1>
+    <div class="sub" id="hdSub"></div>
+    <div class="meta" id="hdMeta"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="reach">
+    <div class="reach-card">
+      <div class="reach-head">
+        <div><div class="label">Jangkauan terhadap populasi pegawai</div>
+          <div class="big"><span id="rAtt"></span> <small id="rAttLab"></small></div></div>
+        <div class="big" style="color:var(--amber)" id="rPct"></div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="reachFill"></div></div>
+      <div class="bar-scale"><span>0</span><span id="rPopLab"></span></div>
+      <div class="reach-note"><b>Inti temuan:</b> kualitas pelaksanaan tinggi, tetapi jangkauan masih kecil. Sliver amber di kiri adalah peserta yang benar-benar hadir — tantangan utamanya distribusi undangan sampai level staf, bukan konten.</div>
+    </div>
+  </section>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="sec-eb"><span class="num">1</span><h2>Alur Partisipasi</h2><p>Konversi kehadiran ke penyelesaian evaluasi</p></div>
+  <div class="grid g-2">
+    <div class="panel"><h3>Funnel partisipasi</h3><p class="cap">Peserta menyusut di tiap tahap.</p><div class="chart-box"><canvas id="cFunnel"></canvas></div></div>
+    <div class="panel"><h3>Pembersihan data</h3><p class="cap">Baris mentah → entri valid per sheet.</p><div class="chart-box"><canvas id="cClean"></canvas></div></div>
+  </div>
+
+  <div class="sec-eb"><span class="num">2</span><h2>Efektivitas Pembelajaran</h2><p>Pre vs post · soal identik</p></div>
+  <div class="grid g-2e">
+    <div class="panel"><h3>Distribusi skor: pre vs post</h3><p class="cap">Distribusi bergeser ke kanan pada post-test.</p><div class="chart-box tall"><canvas id="cDist"></canvas></div></div>
+    <div class="panel"><h3>Perubahan skor per individu</h3><p class="cap">Selisih post − pre tiap peserta dipasangkan.</p><div class="chart-box tall"><canvas id="cGain"></canvas></div></div>
+  </div>
+  <div class="grid g-2" style="margin-top:16px">
+    <div class="panel"><h3>Arah perubahan pemahaman</h3><p class="cap">Mayoritas "tetap" karena skor awal tinggi.</p><div class="chart-box short"><canvas id="cDonut"></canvas></div></div>
+    <div class="panel"><h3>Efek ceiling</h3><p class="cap">Banyak peserta sudah menguasai materi sejak awal.</p>
+      <div class="mini-stats" id="ceilingStats"></div>
+      <div class="callout b" style="margin-top:12px"><b>Implikasi strategis:</b> audiens cenderung <i>self-selected</i>. Materi efektif bagi yang belum menguasai — memperkuat argumen memperluas distribusi, bukan merevisi konten.</div>
+    </div>
+  </div>
+
+  <div class="sec-eb"><span class="num">3</span><h2>Peserta Skor Sempurna</h2><p>Nilai 100 di pre-test &amp; post-test · untuk internal PLN</p></div>
+  <div class="grid g-21">
+    <div class="panel"><h3>Ringkasan skor sempurna</h3><p class="cap">Jumlah peserta dengan skor 100.</p>
+      <div class="mini-stats" id="perfectStats"></div>
+      <div class="callout g" style="margin-top:12px"><b>Catatan:</b> daftar di samping adalah peserta yang meraih nilai 100 pada <i>kedua</i> tes (pre &amp; post) — indikator penguasaan materi paling kuat.</div>
+    </div>
+    <div class="panel"><h3>Daftar nilai sempurna pre &amp; post (<span id="perfectCount"></span> peserta)</h3><p class="cap">Nama ditampilkan untuk kebutuhan internal PLN.</p>
+      <div style="overflow:auto;max-height:330px"><table class="disp" id="perfectTbl"><thead><tr><th>#</th><th>Nama</th><th>Unit</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="sec-eb"><span class="num">4</span><h2>Kepuasan &amp; Persepsi Materi</h2><p>Penilaian mandiri · skala 1–5 · n=71</p></div>
+  <div class="grid g-2">
+    <div class="panel"><h3>Rata-rata penilaian per dimensi</h3><p class="cap">Warna batang mengikuti kategori skala di bawah.</p>
+      <div class="chart-box tall"><canvas id="cTopics"></canvas></div>
+      <div class="scale-legend" id="scaleLegend"></div>
+    </div>
+    <div class="panel"><h3>Pembacaan skala penilaian</h3><p class="cap">Rentang nilai dan artinya. Seluruh dimensi kini berada pada kategori "Baik".</p>
+      <table class="disp" id="scaleTbl"><thead><tr><th>Rentang</th><th>Kategori</th></tr></thead><tbody></tbody></table>
+      <div class="callout" style="margin-top:12px"><b>Interpretasi:</b> rata-rata seluruh dimensi 4,18–4,27 → masuk kategori <b>Baik</b> dan mendekati ambang "Sangat Baik" (4,50).</div>
+    </div>
+  </div>
+
+  <div class="sec-eb"><span class="num">5</span><h2>Pertanyaan &amp; Keaktifan Peserta</h2><p>Diolah dari chat Zoom · sesi tanya-jawab</p></div>
+  <div class="grid g-21">
+    <div class="panel"><h3>Keaktifan bertanya</h3><p class="cap" id="qaCap"></p>
+      <div class="chart-box short"><canvas id="cQA"></canvas></div>
+      <div class="mini-stats" id="qaStats" style="margin-top:6px"></div>
+    </div>
+    <div class="panel"><h3>Daftar pertanyaan via kolom chat</h3><p class="cap">Penanya, unit/institusi, dan inti pertanyaan.</p>
+      <div style="overflow:auto;max-height:360px"><table class="disp" id="qTbl"><thead><tr><th>Waktu</th><th>Penanya</th><th>Unit</th><th>Pertanyaan</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="sec-eb"><span class="num">6</span><h2>Analisis Feedback</h2><p>Kategorisasi otomatis · dapat dikoreksi di Editor</p></div>
+  <div class="grid g-21">
+    <div class="panel"><h3>Distribusi kategori feedback</h3><p class="cap">Setiap respons dikelompokkan ke area utama.</p>
+      <div class="chart-box short"><canvas id="cFbCat"></canvas></div>
+      <div class="callout b" style="margin-top:10px" id="fbSummary"></div>
+    </div>
+    <div class="panel"><h3>Seluruh respons feedback (<span id="fbCount"></span>)</h3><p class="cap">Tag area &amp; jenis di kanan tiap baris.</p>
+      <div class="fb-list" id="fbList"></div>
+    </div>
+  </div>
+
+  <div class="sec-eb"><span class="num">7</span><h2>Kekuatan · Area Perbaikan · Rekomendasi</h2><p>Sintesis dari feedback &amp; pertanyaan</p></div>
+  <div class="three">
+    <div class="card"><h4><span class="ic s">💪</span>Kekuatan (Strengths)</h4><ul class="ul" id="strengths"></ul></div>
+    <div class="card"><h4><span class="ic i">🔧</span>Area Perbaikan</h4><ul class="ul" id="improvements"></ul></div>
+    <div class="card"><h4><span class="ic r">🎯</span>Rekomendasi</h4><ul class="ul" id="recommendations"></ul></div>
+  </div>
+
+  <div class="sec-eb"><span class="num">8</span><h2>Sebaran Unit &amp; Peringkat</h2><p>Unit terkonsolidasi · peserta teratas</p></div>
+  <div class="grid g-2">
+    <div class="panel"><h3>Unit kerja terbanyak hadir</h3><p class="cap">Nama unit dirapikan dari variasi penulisan.</p><div class="chart-box tall"><canvas id="cUnits"></canvas></div></div>
+    <div class="panel"><h3>Peserta teratas (skor)</h3><p class="cap">Urutan: post → peningkatan → kelengkapan → waktu.</p>
+      <div style="overflow:auto;max-height:330px"><table class="disp" id="rankTbl"><thead><tr><th>#</th><th>Nama</th><th>Unit</th><th class="num">Pre</th><th class="num">Post</th><th class="num">Δ</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="sec-eb"><span class="num">9</span><h2>Sintesis &amp; Keterbatasan</h2></div>
+  <div class="ins">
+    <div class="card"><h4>Temuan utama</h4><ul class="ul" id="findings"></ul></div>
+    <div class="card"><h4>Keterbatasan data (transparansi)</h4><ul class="ul" id="limits"></ul></div>
+  </div>
+
+  <footer class="foot">
+    <span>Dashboard editable Webinar 1 · Seri Literasi Nuklir PLN · semua angka &amp; teks dapat diperbaiki di tab Editor.</span>
+    <span>Data agregat · email/NIP/nomor tidak ditampilkan; nama hanya untuk kebutuhan internal.</span>
+  </footer>
+</div>
+</div>
+
+<!-- ===================== EDITOR ===================== -->
+<div id="view-editor" class="view">
+  <div class="wrap">
+    <div class="editor-intro"><b>Cara pakai.</b> Ubah angka atau teks mana pun — Dashboard langsung menyesuaikan. Persentase &amp; selisih dihitung otomatis. Untuk feedback &amp; pertanyaan, Anda bisa mengedit teks, mengganti kategori, menambah/menghapus baris. Perubahan tersimpan otomatis di browser ini; pakai <b>Ekspor data (JSON)</b> untuk menyimpan/membagikan, <b>Impor data</b> untuk memuat ulang, dan <b>Reset</b> untuk kembali ke data awal.</div>
+    <div class="ed-grid" id="editorGrid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DEFAULTS = {"meta": {"title": "Webinar 1 — \"Nuklir Lebih Dekat dari yang Kita Bayangkan\"", "subtitle": "Seri internal \"Literasi Nuklir untuk Masa Depan Rendah Karbon\". Seluruh angka dihitung setelah pembersihan data (penghapusan entri uji coba & attempt duplikat).", "date": "Kamis, 11 Juni 2026 · 13.30–14.45 WIB", "source": "Series_Webinar_Nuclear_PLN.xlsx", "population": 51000, "attendees": 288, "preCount": 104, "postCount": 71, "feedbackCount": 71, "pairs": 55}, "cleaning": {"kehadiranRaw": 307, "kehadiranValid": 288, "preRaw": 115, "preValid": 104, "postRaw": 76, "postValid": 71}, "learning": {"preMean": 87.64, "postMean": 94.73, "improved": 21, "same": 33, "declined": 1, "ceilingPre100": 27, "ceilingLt100": 28, "ceilingLt100Improved": 21, "preMin": 50, "postMin": 70}, "preDist": [{"s": 0, "n": 1}, {"s": 10, "n": 1}, {"s": 20, "n": 1}, {"s": 30, "n": 1}, {"s": 40, "n": 1}, {"s": 50, "n": 3}, {"s": 60, "n": 3}, {"s": 70, "n": 15}, {"s": 80, "n": 15}, {"s": 90, "n": 21}, {"s": 100, "n": 42}], "postDist": [{"s": 0, "n": 1}, {"s": 40, "n": 2}, {"s": 50, "n": 1}, {"s": 70, "n": 2}, {"s": 80, "n": 3}, {"s": 90, "n": 14}, {"s": 100, "n": 48}], "gainDist": [{"d": -30, "n": 1}, {"d": 0, "n": 33}, {"d": 10, "n": 7}, {"d": 20, "n": 9}, {"d": 30, "n": 4}, {"d": 50, "n": 1}], "topics": [{"label": "Informasi Baru Diperoleh", "mean": 4.27}, {"label": "Peran Nuklir Sehari-hari", "mean": 4.25}, {"label": "Nuklir Medis & Kesehatan", "mean": 4.25}, {"label": "Nuklir Tidak Hanya Energi", "mean": 4.25}, {"label": "Materi Memenuhi Harapan", "mean": 4.24}, {"label": "Sejarah Nuklir Indonesia", "mean": 4.23}, {"label": "Nuklir Riset & Inovasi", "mean": 4.23}, {"label": "Nuklir Pangan & Pertanian", "mean": 4.18}, {"label": "Relevansi dgn Pekerjaan", "mean": 4.18}], "units": [["PLN Kantor Pusat", 65], ["PLN Pusmanpro", 7], ["PLN Nusantara Power", 6], ["PLN Puslitbang", 5], ["PLN UIP JBTB", 5], ["PLN Pusat Sertifikasi", 4], ["PLN UIP3B Kalimantan", 4], ["PLN UID Bali", 4], ["PLN UIT JBT", 4], ["PLN Pusdiklat", 4]], "ranking": [["Andika Zain", "UIP JBTB", 50, 100], ["Valensi Erza", "PLN Puslitbang", 70, 100], ["Khrisna Vembri Yudanto", "PLN Pusat", 70, 100], ["Muhammad Helmi Hamdani", "PLN Pusat", 70, 100], ["Krisna Agus Setiawan", "PLN Puslitbang", 70, 100], ["I Gusti Ngurah Agung S. D. P.", "UPT Bali", 80, 100], ["Suranto", "PLN UIT Jawa Bagian Tengah", 80, 100], ["Amaliyah Noor", "Pusmanpro UPMK III", 80, 100], ["Yudi Hidayat", "PLN Indonesia Power", 80, 100], ["Neysa Velda Ivana Riwu", "UIP3B Kalimantan", 90, 100]], "feedbackPositive": "Sangat positif: \"sudah baik\", \"ditunggu seri berikutnya\", permintaan program rutin bulanan.", "findings": ["Kualitas tinggi, jangkauan rendah — kepuasan & pembelajaran baik, tapi hanya sebagian kecil populasi terjangkau.", "Audiens sudah teredukasi — banyak peserta sempurna sejak pre-test (self-selected).", "Materi efektif bagi yang belum menguasai — mayoritas dari skor awal rendah meningkat.", "Completion evaluasi rendah — pengisian pre & post jauh di bawah jumlah hadir."], "limits": ["Tidak ada data per butir soal — hanya skor agregat; analisis per soal & distribusi jawaban tak dapat dihitung.", "Undangan/registrasi tidak terpisah dari roster kehadiran → konversi undangan tak terukur.", "22 pre & 11 post tidak tercocokkan ke roster (identitas berbeda).", "Feedback menyatu dengan post-test sehingga tak terukur independen."], "qa": {"attendeesLive": 204, "questioners": 14, "questions": 15}, "chatQuestions": [["Azhar Sodik", "UID Kalbar", "Untuk rencana PLTN di RUPTL, tipe reaktornya SMR — apa dasar pemilihan reaktor tersebut, sementara belum banyak negara mengimplementasikannya?", "14:13"], ["Fauzi Asrul", "PLN Nusantara Power", "Ketakutan barat terhadap nuklir adalah pemurnian uranium untuk persenjataan. Benarkah, dan apa batasan penggunaan konsentrat uranium untuk kepentingan non-persenjataan?", "14:13"], ["Agung Sutrisna", "UPT Bali", "Untuk lokasi pembangunan PLTN di Indonesia sebaiknya di mana, atau syarat apa yang dibutuhkan agar suatu daerah layak dibangun PLTN?", "14:16"], ["Dimas Eka", "PLN Pusat (DIVMEP)", "Apa saja persyaratan dari sisi Owner/Pemilik PLTN dalam penyusunan kontrak atau pengadaan agar memenuhi persyaratan nasional dan internasional?", "14:18"], ["M. Ardiansyah", "UIP KLT", "Sejauh mana kesiapan regulasi di Indonesia terkait pemanfaatan energi nuklir, dan sebesar apa kepercayaan internasional atas kemampuan Indonesia mengelolanya?", "14:18"], ["Prida", "—", "Teknologi PLTN sudah meyakinkan banyak orang namun 'not in my backyard'. Apa mitigasi prioritas agar sikap ini tidak menjadi tantangan besar pengembangan PLTN?", "14:18"], ["Joko Pitoyo", "—", "Untuk mempercepat pembangunan PLTN, usaha apa yang sudah dilakukan oleh Kementerian ESDM?", "14:21"], ["Fernando Jonas Sitorus", "PLN Indonesia Power", "Mengapa masyarakat menerima nuklir di bidang kesehatan tetapi menolak PLTN? Apakah keberhasilan di sektor kesehatan dapat meningkatkan kepercayaan, dan bagaimana mengkomunikasikan manfaat ekonomi PLTN secara konkret?", "14:22"], ["Adri Yasper", "—", "Dengan besarnya potensi EBT Indonesia (hydro, solar, geothermal, arus laut), mengapa Indonesia masih perlu melirik PLTN?", "14:32"], ["Iman A", "ULP Kenten", "Bagaimana PLN memastikan keberadaan PLTN tidak menimbulkan stranded asset bila perkembangan baterai dan EBT berlangsung lebih cepat dari perkiraan?", "14:36"], ["Azhar Sodik", "UID Kalbar", "Adakah efek stokastik terhadap pasien terapi fasilitas nuklir?", "14:47"], ["Syaifuddin", "PLN Nusantara Power (CMR-1)", "Saat pasien disuntik material nuklir untuk PET/CT Scan, apakah material meluruh, bereaksi, atau terekskresi? Berapa waktu minimal–maksimal zat itu hilang dari tubuh?", "14:49"], ["Faradiba Fajar R", "UIW Babel", "Apakah produk pangan yang bersentuhan teknologi nuklir (iradiasi) 100% aman dikonsumsi jangka panjang, dan apakah petani kecil sudah bisa mengaksesnya dengan mudah dan murah?", "14:53"], ["Hadi Prayogo", "—", "Sebaiknya PLN membangun PLTN skala kecil/modular dulu atau langsung skala besar, dan sejauh mana kesiapan Indonesia mengelola limbah radioaktif PLTN?", "14:53"], ["Henra Sibatuara", "PLN Pusertif", "Jika nuklir begitu bermanfaat, mengapa Indonesia belum punya PLTN komersial? Apa tantangan terbesar penerimaan masyarakat, dan dengan target NZE apakah PLTN kebutuhan atau alternatif?", "14:57"]], "perfect": {"pre": 42, "post": 48, "both": 27, "list": [["Khusnul Khotimah", "PLN UPT Kendari"], ["Fauzi Asrul", "PLN Nusantara Power"], ["Ansyaruddin Rahmatdiansyah", "PLN UIW NTT"], ["Ardian Rizkytama", "PUSMANPRO"], ["Muhammad Lutfi Marjan", "PLN Kantor Pusat"], ["Hernowo Aji Pratangga", "PLN Pusat"], ["FERNANDO JONAS SITORUS", "PLN INDONESIA POWER"], ["Arsy Hadyan", "Bid bang pltn"], ["Ismail Hartanto", "PLN UPP MPA 1"], ["Adri Yasper", "UPK Flores/UIK Dwipantara"], ["Faradiba Fajar Ramadhan", "Hcbp area 3"], ["Gustiyadi Fathur Rahmandi", "PLN UID Kalsel & Kalteng UP3 Palangka Raya"], ["Edo Agung Wibowo Rendi Saputro", "PLN UIP Nusa Tenggara"], ["Mimin Milasari", "PLN UIP JBT"], ["Difa febriyanti", "PLN UP2B DKI JAKARTA DAN BANTEN"], ["Seno Pandu Ahmad", "PLN Enjiniring"], ["Tias Bayu Krisnandi", "UITJBT"], ["Pandu Widianto Maidi", "PLN PUSMANPRO"], ["Sutomo", "PLN UIK TJB"], ["IMAN ASWILTON", "PLN ULP KENTEN"], ["SHINTA IKAWATI", "PLN UIP JBTB"], ["OKY FEBRI WAHYUDI", "PLN PUSAT/PLN UIP3BS/UPT BANDA ACEH/ULTG LANGSA"], ["Nanang Asmin", "PLN NP"], ["Marzuki", "PLN MCTN"], ["Tito Rachman", "PLN UIPJBTB"], ["PRASETYO EFENDY", "PLN UIP JBTB"], ["Gesmulyadi", "PLN UIP JBTB"]]}, "feedbackItems": [{"text": "Sudah sangat baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Semoga bisa segera diterapkan utk pembangkit yg aman", "cat": "Lainnya", "sent": "Saran"}, {"text": "Menarik utjnmengikuti webinar selanjutnya", "cat": "Lainnya", "sent": "Apresiasi"}, {"text": "Ditingkatkan", "cat": "Apresiasi", "sent": "Saran"}, {"text": "Cukup baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "keren, lanjutkan", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Membahas mengenai tantangan aplikasi PLTN di Indonesia", "cat": "Materi", "sent": "Saran"}, {"text": "Sudah oke", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "lebih banyak series terkait nuklir", "cat": "Lainnya", "sent": "Saran"}, {"text": "Webinar Nuclear Awareness sangat bermanfaat dalam meningkatkan pemahaman mengenai peran energi nuklir dalam mendukung ketahanan energi nasional dan pencapaian Net Zero Emission (NZE) 2060. Ke depannya, saya berharap materi dapat lebih banyak membahas implementasi nuklir dalam konteks sistem ketenagalistrikan Indonesia, khususnya keterkaitannya dengan RUPTL PLN, aspek keekonomian PLTN dibandingkan sumber energi lainnya, serta studi kasus keberhasilan penerapan nuklir di berbagai negara. Selain itu, sesi diskusi interaktif dan tanya jawab dapat diperpanjang agar peserta memiliki kesempatan lebih luas untuk menggali isu-isu strategis maupun teknis terkait pengembangan energi nuklir di Indonesia.", "cat": "Program", "sent": "Saran"}, {"text": "Sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Bagus untuk meningkatkan awareness terkait bahaya nuklir, akan lebih baik jika menjangkau masyarakat umum", "cat": "Program", "sent": "Saran"}, {"text": "Serial teknologi lain juga perlu dibuat", "cat": "Materi", "sent": "Saran"}, {"text": "dilanjutkan dengan materi yang lain terkait teknologi nuklir", "cat": "Materi", "sent": "Saran"}, {"text": "Pengembangan nuklir untuk sektor kelistrikan", "cat": "Lainnya", "sent": "Saran"}, {"text": "Tambahan narasumber dari background lainnya", "cat": "Narasumber", "sent": "Saran"}, {"text": "sangat bagus sekali", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Saya ingin mengetahui tentang Nuklir, khusunya PLTN lebih banyak", "cat": "Materi", "sent": "Saran"}, {"text": "Kalau bisa di kasih contoh studi kasus yang nyata atau rill di bidang yg dekat dengan masyakarat", "cat": "Materi", "sent": "Saran"}, {"text": "dipertahankan tema yg mendukung transisi energi menuju NZE", "cat": "Materi", "sent": "Saran"}, {"text": "sangat baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Insight baru", "cat": "Materi", "sent": "Saran"}, {"text": "agar lebih sering dilakukan awareness supaya lebih dapat lagi tersampaikan terkait materi ini", "cat": "Materi", "sent": "Saran"}, {"text": "Tidak sabar untuk seri berikutnya", "cat": "Apresiasi", "sent": "Saran"}, {"text": "Materi lebih detail tentang aplikasi nuklir di pembangkit listrik", "cat": "Materi", "sent": "Saran"}, {"text": "Agar materinya lebih menarik", "cat": "Materi", "sent": "Saran"}, {"text": "Lebih banyak lagi hadiahnya", "cat": "Program", "sent": "Saran"}, {"text": "Membahas secara teknis bagaimana mengoperasi dan memelihara PLTN", "cat": "Materi", "sent": "Saran"}, {"text": "Membahas kemajuan kebijakan PLTN terbaru dari pemerintah di Indonesia", "cat": "Materi", "sent": "Saran"}, {"text": "agar lebih interaktif", "cat": "Program", "sent": "Saran"}, {"text": "Untuk dapat di share materi presentasinya", "cat": "Program", "sent": "Saran"}, {"text": "Sering disosialisasikan tentang energi Nuklir supaya ramah lingkungan dan transisi energi", "cat": "Program", "sent": "Saran"}, {"text": "Ditunggu series berikutnya", "cat": "Apresiasi", "sent": "Saran"}, {"text": "sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Ditunggu webinar Nuclear Awareness yang akan datang, mohon materi dapat dishare kepada peserta webinar", "cat": "Program", "sent": "Saran"}, {"text": "Awarness untuk teknologi listrik", "cat": "Materi", "sent": "Saran"}, {"text": "Berlanjut ke materi selanjutnya..", "cat": "Materi", "sent": "Saran"}, {"text": "Membahas Peran nuklir dlm transisi energi utk ketahanan energi nasional", "cat": "Lainnya", "sent": "Saran"}, {"text": "Untuk diinformasikan tema-tema series yang akan diwebinarkan dan disharing rekamannya apabila ingin melihat lagi", "cat": "Program", "sent": "Saran"}, {"text": "Saya berharap webinar Nuclear Awareness selanjutnya dapat menghadirkan lebih banyak studi kasus dan contoh penerapan teknologi nuklir yang dekat dengan kehidupan sehari-hari, seperti di bidang kesehatan, pertanian, industri, dan energi. Selain itu, sesi tanya jawab dapat diperpanjang agar peserta memiliki kesempatan lebih banyak untuk berdiskusi dan memahami isu-isu terkait nuklir secara lebih mendalam. Semoga kegiatan ini terus berlanjut untuk meningkatkan literasi masyarakat mengenai manfaat, keamanan, dan peran teknologi nuklir dalam mendukung pembangunan nasional serta target Net Zero Emissions (NZE)", "cat": "Program", "sent": "Saran"}, {"text": "visualisasi : adanya animasi 3D atau infografis interaktif mengenai cara kerja Pembangkit Listrik Tenaga Nuklir (PLTN) dan sistem keselamatannya", "cat": "Program", "sent": "Saran"}, {"text": "Semoga dg tenaga nuklir ini bisa ditemukan teknologi yg lebih ringkas dan preventif untuk kesehatan manusia", "cat": "Materi", "sent": "Saran"}, {"text": "Untuk medis ilmu radioaktif (nuklir) sudah cukup berkembang, semoga bisa terimplementasi untuk swasembada energi dan juga pertahanan", "cat": "Materi", "sent": "Saran"}, {"text": "Terkait tema nuklir sebagai EBT lebih detail", "cat": "Materi", "sent": "Saran"}, {"text": "Siap nyimak... Mohon di infokan lebih luas di group internal PLN Group.", "cat": "Program", "sent": "Saran"}, {"text": "Sudah bagus", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Mantap", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Batasan Radiasi yang wajar dan Mitigasi penanganan bahaya radiasi Nuklir", "cat": "Materi", "sent": "Saran"}, {"text": "Sesi diskusi yang lebih interaktif", "cat": "Program", "sent": "Saran"}, {"text": "Update progress implementasi PLTN di Indonesia", "cat": "Materi", "sent": "Saran"}, {"text": "Prinsip cara kerja nuklir di dalam pembangkitan tenaga listrik", "cat": "Materi", "sent": "Saran"}, {"text": "cukup", "cat": "Apresiasi", "sent": "Saran"}, {"text": "Sistem pemanfaatan nuklir pada sektor pembangkit listrik", "cat": "Lainnya", "sent": "Saran"}, {"text": "Ada kegiatan kunjungan ke reaktor", "cat": "Program", "sent": "Saran"}, {"text": "lebih banyak materi tentang nuklir termasuk pembangunan pembangkit nuklir", "cat": "Materi", "sent": "Saran"}, {"text": "Cukup", "cat": "Apresiasi", "sent": "Saran"}, {"text": "cukup baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Segera terimplementasi dengan baik dan aman", "cat": "Lainnya", "sent": "Apresiasi"}, {"text": "Oke", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Melanjutkan materi ke PLTN", "cat": "Materi", "sent": "Saran"}, {"text": "Tambah memahami peran nuklir untuk kehidupan sehari2", "cat": "Lainnya", "sent": "Saran"}, {"text": "Sangat bagus sekali kedepan lebih banyak kesempatan untuk bertanya", "cat": "Apresiasi", "sent": "Saran"}, {"text": "sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Sudah baik. Tingkatkan", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Materi bisa ditambahkan video2", "cat": "Materi", "sent": "Saran"}, {"text": "Menarik dengan menambahkan contoh seperti dokter SpKN", "cat": "Narasumber", "sent": "Apresiasi"}, {"text": "Ditingkatkan", "cat": "Apresiasi", "sent": "Saran"}, {"text": "Sudha baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "mantab dan interaktif", "cat": "Program", "sent": "Saran"}, {"text": "Menambah pembicara dari praktisi PLTN dari dalam dan luar negeri", "cat": "Narasumber", "sent": "Saran"}, {"text": "Share screen recording dan materi..", "cat": "Program", "sent": "Saran"}, {"text": "Oke", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Program ini sudah berjalan dengan baik dan relevan dengan tantangan transisi energi saat ini. Untuk meningkatkan kualitas program, saya menyarankan agar materi lebih banyak mengaitkan teknologi nuklir dengan kondisi dan kebutuhan Indonesia, termasuk keterkaitannya dengan RUPTL PLN, target NZE 2060, ketahanan energi nasional, serta aspek keekonomian dan regulasinya. Selain itu, dapat ditambahkan studi kasus dari negara-negara yang berhasil mengimplementasikan PLTN, sesi diskusi yang lebih interaktif, serta penyampaian materi teknis yang lebih mendalam bagi peserta yang memiliki latar belakang ketenagalistrikan dan energi. Dengan demikian, peserta tidak hanya memahami konsep dasar nuklir, tetapi juga memperoleh gambaran implementasi yang lebih aplikatif dan strategis.", "cat": "Program", "sent": "Saran"}, {"text": "Sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Baik, hanya terlalu singkat durasinya", "cat": "Program", "sent": "Saran"}, {"text": "Pertanyaan yang ditampung dapat dijawab narasumber dan disampaikan di link.tree", "cat": "Narasumber", "sent": "Saran"}, {"text": "materi bisa merujuk ke pengembangan PLTN", "cat": "Materi", "sent": "Saran"}, {"text": "Studi kasus di daerah indonesia", "cat": "Materi", "sent": "Saran"}, {"text": "Tambahan narasumber dari background lainnya", "cat": "Narasumber", "sent": "Saran"}, {"text": "sangat bagus sekali", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Saya ingin ini lebih diikuti oleh khalayak ramai tidak hanya insan PLN", "cat": "Program", "sent": "Saran"}, {"text": "Lebih interktif", "cat": "Apresiasi", "sent": "Saran"}, {"text": "lanjut ke tema energi baru terbarukan lainnya", "cat": "Materi", "sent": "Saran"}, {"text": "sangat baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Baik, lebih detail ke nuklir pembangkit", "cat": "Materi", "sent": "Saran"}, {"text": "sampaikan pula rencana PLN terkait pengembangan nuklir", "cat": "Lainnya", "sent": "Saran"}, {"text": "Kualitas barasumber dipertahankan", "cat": "Narasumber", "sent": "Saran"}, {"text": "Durasi lebih lama", "cat": "Program", "sent": "Saran"}, {"text": "Menyampaikan isue2 terbaru dan studi kasus", "cat": "Materi", "sent": "Saran"}, {"text": "Lebih banyak lagi hadiahnya", "cat": "Program", "sent": "Saran"}, {"text": "Membahas secara teknis bagaimana mengoperasi dan memelihara PLTN", "cat": "Materi", "sent": "Saran"}, {"text": "Sangat baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "agar lebih interaktif", "cat": "Program", "sent": "Saran"}, {"text": "Ditunggu sesi berikutnya", "cat": "Apresiasi", "sent": "Saran"}, {"text": "Sering dilaksanakan sosialisasi energi nuklir ke masyarakat umum", "cat": "Program", "sent": "Saran"}, {"text": "Belum ada", "cat": "Apresiasi", "sent": "Saran"}, {"text": "Sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Menghadirkan narasumber dari regulator dan praktisi yang sudah berpengalaman internasional", "cat": "Narasumber", "sent": "Saran"}, {"text": "Dapat diinformasikan lebih awal", "cat": "Program", "sent": "Saran"}, {"text": "Kalau bisa kuis ny diperbanyak lagi..sisany sdh baik pertahankan..", "cat": "Program", "sent": "Saran"}, {"text": "Menampilkan pemateri yg qualified", "cat": "Narasumber", "sent": "Apresiasi"}, {"text": "Untuk diinformasikan tema-tema series yang akan diwebinarkan dan disharing rekamannya apabila ingin melihat lagi", "cat": "Program", "sent": "Saran"}, {"text": "Menambah sesi interaktif, memperpanjang waktu tanya jawab, serta menyediakan materi dan rekaman webinar setelah kegiatan agar peserta dapat memahami materi dengan lebih optimal.", "cat": "Program", "sent": "Saran"}, {"text": "Perbandingan langsung antara negara sukses pengguna nuklir (seperti Jepang, Perancis) dengan kondisi geografis Indonesia", "cat": "Materi", "sent": "Saran"}, {"text": "Diharapkan ada edukasi kembali terkait tanda2 resiko kesehatan yang dapat dialami oleh masyarakat atas teknologi nuklir tersebut", "cat": "Program", "sent": "Saran"}, {"text": "Untuk penjelasan sudah baik dan detail, semoga kedepannya bisa diupdate informasi teknologi nuklirnya", "cat": "Materi", "sent": "Saran"}, {"text": "sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Nara sumber yang berinteraksi langsung dengan kegiatan Nuklir", "cat": "Narasumber", "sent": "Saran"}, {"text": "Program sudah bagus", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Cukup", "cat": "Apresiasi", "sent": "Saran"}, {"text": "Pemaparan Risiko dan Mitigasi Radiasi Nuklir", "cat": "Narasumber", "sent": "Saran"}, {"text": "roadmap dan sasaran output yang terukur", "cat": "Materi", "sent": "Saran"}, {"text": "Terus dilanjutkan informasi PLTN hingga PLTN beroperasi di Indonesia", "cat": "Materi", "sent": "Saran"}, {"text": "Sudah sangat baik .", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "diganti dengan format luring , jadi harapannya bisa lebih interaktif", "cat": "Program", "sent": "Saran"}, {"text": "Sudah bagus", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Mendapat insight baru dan arah kebijakan", "cat": "Materi", "sent": "Saran"}, {"text": "materi dapat di share", "cat": "Program", "sent": "Saran"}, {"text": "Cukup", "cat": "Apresiasi", "sent": "Saran"}, {"text": "sudah cukup baik", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Series selanjutnya segera dimulai", "cat": "Lainnya", "sent": "Saran"}, {"text": "Oke", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "Konsisten diadakan secara rutin bulanan", "cat": "Program", "sent": "Saran"}, {"text": "Keren", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "sudah bagus", "cat": "Apresiasi", "sent": "Apresiasi"}, {"text": "sudah baik", "cat": "Apresiasi", "sent": "Apresiasi"}], "strengths": ["Materi relevan & membuka wawasan — banyak peserta menyebut memperoleh insight baru dan mengaitkannya dengan target NZE 2060.", "Narasumber dinilai berkualitas dan menjelaskan detail, termasuk perspektif nuklir medis dari dokter spesialis.", "Topik aplikatif lintas sektor (kesehatan, pangan, energi) menarik minat dan terasa dekat dengan keseharian.", "Antusiasme tinggi — banyak permintaan agar program dilanjutkan secara rutin bulanan.", "Kepuasan tinggi merata di seluruh dimensi penilaian (rata-rata 4,18–4,27 dari 5)."], "improvements": ["Durasi dirasa terlalu singkat, terutama sesi tanya-jawab yang banyak diminati.", "Kedalaman teknis PLTN masih kurang bagi peserta berlatar ketenagalistrikan.", "Materi presentasi & rekaman belum dibagikan pascawebinar.", "Jangkauan distribusi terbatas — banyak meminta diperluas ke seluruh PLN Group, bahkan masyarakat umum.", "Interaktivitas perlu ditingkatkan (kuis, diskusi, format yang lebih hidup)."], "recommendations": ["Perpanjang & strukturkan sesi tanya-jawab; tampung pertanyaan via polling sejak awal sesi.", "Bagikan materi presentasi, rekaman, dan jawaban pertanyaan melalui satu tautan pascawebinar.", "Tambah studi kasus nyata dan perbandingan antarnegara (mis. Jepang, Prancis) dengan konteks Indonesia.", "Hadirkan narasumber praktisi dan regulator yang berpengalaman internasional.", "Kaitkan materi dengan RUPTL, target NZE 2060, serta aspek keekonomian dan regulasi PLTN.", "Tambahkan visualisasi (animasi 3D/infografis) cara kerja dan sistem keselamatan PLTN.", "Perluas distribusi undangan ke seluruh PLN Group; pertimbangkan jangkauan ke publik.", "Jadwalkan rutin bulanan dengan tema yang diinformasikan lebih awal kepada peserta."], "ratingLegend": [{"min": 4.5, "label": "Sangat Baik", "color": "#1b6e2e"}, {"min": 3.5, "label": "Baik", "color": "#2e75b6"}, {"min": 2.5, "label": "Cukup", "color": "#e3922b"}, {"min": 1.5, "label": "Kurang", "color": "#c2622a"}, {"min": 0, "label": "Sangat Kurang", "color": "#b3261e"}]};
+const STORE_KEY='pln_webinar1_dashboard_v2';
+const NAVY='#102a52',BLUE='#1f4e79',BLUE2='#2e75b6',AMBER='#e3922b',GREEN='#2e7d32',RED='#b3261e',MUTED='#5b6b80',GRID='#eef2f7',PURPLE='#6b4ea3';
+const CATCOLORS={Materi:BLUE,Narasumber:PURPLE,Program:AMBER,Apresiasi:GREEN,Lainnya:'#9aa7b6'};
+const CATS=['Materi','Narasumber','Program','Apresiasi','Lainnya'];
+const SENTS=['Apresiasi','Saran'];
+
+let DATA = load();
+const charts={};
+function deepCopy(o){return JSON.parse(JSON.stringify(o));}
+function load(){try{const s=localStorage.getItem(STORE_KEY);if(s)return mergeDefaults(JSON.parse(s));}catch(e){}return deepCopy(DEFAULTS);}
+function mergeDefaults(saved){const base=deepCopy(DEFAULTS);for(const k in saved)base[k]=saved[k];return base;}
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(DATA));setSaved(true);}catch(e){setSaved(false,'Tak bisa simpan otomatis — pakai Ekspor');}}
+function setSaved(ok,msg){const el=document.getElementById('saveState');el.classList.toggle('dirty',!ok);document.getElementById('saveText').textContent=msg||(ok?'Tersimpan otomatis':'Belum tersimpan');}
+
+const nf=n=>new Intl.NumberFormat('id-ID').format(n);
+const dec=(n,d=2)=>Number(n).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct=(n,d)=>d?(n/d*100):0; const pctTxt=(n,d)=>dec(pct(n,d),1)+'%';
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function boldFirst(s){const i=s.indexOf('—');return i>0?`<b>${escapeHtml(s.slice(0,i).trim())}</b> — ${escapeHtml(s.slice(i+1).trim())}`:escapeHtml(s);}
+function scaleCat(v){const L=DATA.ratingLegend.find(x=>v>=x.min);return L||DATA.ratingLegend[DATA.ratingLegend.length-1];}
+
+/* ============ RENDER DASHBOARD ============ */
+function renderDashboard(){
+  const m=DATA.meta,L=DATA.learning;
+  document.getElementById('hdTitle').textContent=m.title;
+  document.getElementById('hdSub').textContent=m.subtitle;
+  document.getElementById('hdMeta').innerHTML=`<span><b>${(m.date.split(' · ')[0])}</b> · ${m.date.split(' · ')[1]||''}</span><span class="sep">•</span><span>Sumber: <b>${m.source}</b></span><span class="sep">•</span><span>Disusun oleh <b>Program Lead</b></span>`;
+  const cov=pct(m.attendees,m.population);
+  document.getElementById('rAtt').textContent=nf(m.attendees);
+  document.getElementById('rAttLab').textContent=`peserta hadir dari ±${nf(m.population)} pegawai`;
+  document.getElementById('rPct').textContent=dec(cov,1)+'%';
+  document.getElementById('rPopLab').textContent=`≈${nf(m.population)} pegawai PLN`;
+  document.getElementById('reachFill').style.width=Math.max(cov,0.4)+'%';
+
+  const gain=L.postMean-L.preMean,rel=L.preMean?gain/L.preMean*100:0;
+  const tAvg=DATA.topics.length?DATA.topics.reduce((a,t)=>a+Number(t.mean),0)/DATA.topics.length:0;
+  const tMin=DATA.topics.length?Math.min(...DATA.topics.map(t=>+t.mean)):0,tMax=DATA.topics.length?Math.max(...DATA.topics.map(t=>+t.mean)):0;
+  const kpis=[
+    {top:'Peserta hadir (roster bersih)',val:nf(m.attendees),sub:`dari ${nf(DATA.cleaning.kehadiranRaw)} baris mentah`,tag:`−${nf(DATA.cleaning.kehadiranRaw-m.attendees)} junk & duplikat`,tc:'b'},
+    {top:'Mengisi pre-test',val:`${nf(m.preCount)} <small>/${nf(m.attendees)}</small>`,sub:`${pctTxt(m.preCount,m.attendees)} dari hadir`,tag:'completion rendah',tc:'a'},
+    {top:'Post-test & feedback',val:`${nf(m.postCount)} <small>/${nf(m.attendees)}</small>`,sub:`${pctTxt(m.postCount,m.attendees)} dari hadir`,tag:'completion rendah',tc:'a'},
+    {top:'Pasangan pre+post',val:nf(m.pairs),sub:'basis analisis pembelajaran',tag:pctTxt(m.pairs,m.attendees),tc:'b'},
+    {top:'Kenaikan rata-rata skor',val:(gain>=0?'+':'')+dec(gain,2),sub:`${dec(L.preMean,2)} → ${dec(L.postMean,2)} (${rel>=0?'+':''}${dec(rel,1)}%)`,tag:gain>=0?'efek positif':'menurun',tc:gain>=0?'g':'a',pos:gain>=0},
+    {top:'Kepuasan rata-rata (1–5)',val:dec(tAvg,2),sub:`rentang ${dec(tMin,2)} – ${dec(tMax,2)}`,tag:scaleCat(tAvg).label,tc:'g'}
+  ];
+  document.getElementById('kpis').innerHTML=kpis.map(k=>`<div class="kpi ${k.pos?'pos':''}"><div class="k-top">${k.top}</div><div class="k-val">${k.val}</div><div class="k-sub">${k.sub}</div><span class="tag ${k.tc}">${k.tag}</span></div>`).join('');
+
+  document.getElementById('ceilingStats').innerHTML=[
+    {v:`${L.ceilingPre100}<small style="font-size:13px;color:${MUTED}">/${m.pairs}</small>`,l:`sudah 100 di pre-test (${dec(pct(L.ceilingPre100,m.pairs),0)}%)`},
+    {v:`${L.ceilingLt100Improved}<small style="font-size:13px;color:${MUTED}">/${L.ceilingLt100}</small>`,l:`skor awal &lt;100 → meningkat (${dec(pct(L.ceilingLt100Improved,L.ceilingLt100),0)}%)`},
+    {v:`${L.preMin}→${L.postMin}`,l:'skor minimum terangkat'}
+  ].map(x=>`<div class="mini"><div class="m-val">${x.v}</div><div class="m-lab">${x.l}</div></div>`).join('');
+
+  // perfect
+  const P=DATA.perfect;
+  document.getElementById('perfectCount').textContent=P.list.length;
+  document.getElementById('perfectStats').innerHTML=[
+    {v:P.pre,l:'nilai 100 di pre-test'},{v:P.post,l:'nilai 100 di post-test'},{v:P.list.length,l:'sempurna di kedua tes'}
+  ].map(x=>`<div class="mini"><div class="m-val">${x.v}</div><div class="m-lab">${x.l}</div></div>`).join('');
+  document.querySelector('#perfectTbl tbody').innerHTML=P.list.map((r,i)=>`<tr><td><span class="rank-badge ${i===0?'top':''}">${i+1}</span></td><td>${escapeHtml(r[0])}</td><td style="color:${MUTED};font-size:12px">${escapeHtml(r[1])}</td></tr>`).join('');
+
+  // scale legend + table
+  document.getElementById('scaleLegend').innerHTML=DATA.ratingLegend.map(x=>`<span class="sl"><span class="sw" style="background:${x.color}"></span>${x.label} (≥${dec(x.min,1)})</span>`).join('');
+  document.querySelector('#scaleTbl tbody').innerHTML=DATA.ratingLegend.map((x,i)=>{const hi=i===0?'5,00':dec(DATA.ratingLegend[i-1].min-0.01,2);return `<tr><td><b style="color:${x.color}">${dec(x.min,2)} – ${hi}</b></td><td>${escapeHtml(x.label)}</td></tr>`;}).join('');
+
+  // QA
+  const q=DATA.qa;
+  document.getElementById('qaCap').textContent=`Dari ${nf(q.attendeesLive)} peserta hadir (live), ${q.questioners} orang bertanya — ${q.questions} pertanyaan total.`;
+  document.getElementById('qaStats').innerHTML=[
+    {v:q.questions,l:'pertanyaan via chat'},{v:q.questioners,l:'peserta bertanya'},{v:dec(pct(q.questioners,q.attendeesLive),1)+'%',l:'tingkat keaktifan'}
+  ].map(x=>`<div class="mini"><div class="m-val">${x.v}</div><div class="m-lab">${x.l}</div></div>`).join('');
+  document.querySelector('#qTbl tbody').innerHTML=DATA.chatQuestions.map(r=>`<tr><td style="font-family:'Space Grotesk';color:${MUTED};white-space:nowrap">${escapeHtml(r[3])}</td><td><b>${escapeHtml(r[0])}</b></td><td style="color:${MUTED};font-size:12px">${escapeHtml(r[1])}</td><td>${escapeHtml(r[2])}</td></tr>`).join('');
+
+  // feedback
+  const items=DATA.feedbackItems;
+  document.getElementById('fbCount').textContent=items.length;
+  const catCount={}; CATS.forEach(c=>catCount[c]=0);
+  items.forEach(it=>{catCount[it.cat]=(catCount[it.cat]||0)+1;});
+  const sar=items.filter(i=>i.sent==='Saran').length, apr=items.length-sar;
+  document.getElementById('fbSummary').innerHTML=`<b>${items.length} respons</b> — ${apr} apresiasi & ${sar} saran perbaikan. Kategori terbanyak: <b>${Object.entries(catCount).sort((a,b)=>b[1]-a[1])[0][0]}</b>.`;
+  document.getElementById('fbList').innerHTML=items.map(it=>`<div class="fb-row"><div class="txt">${escapeHtml(it.text)}</div><div class="fb-tags"><span class="chip ${it.cat}">${it.cat}</span><span class="chip ${it.sent}">${it.sent}</span></div></div>`).join('');
+
+  // strengths/improvements/recommendations
+  document.getElementById('strengths').innerHTML=DATA.strengths.map(s=>`<li>${escapeHtml(s)}</li>`).join('');
+  document.getElementById('improvements').innerHTML=DATA.improvements.map(s=>`<li>${escapeHtml(s)}</li>`).join('');
+  document.getElementById('recommendations').innerHTML=DATA.recommendations.map(s=>`<li>${escapeHtml(s)}</li>`).join('');
+
+  // ranking
+  document.querySelector('#rankTbl tbody').innerHTML=DATA.ranking.map((r,i)=>{const d=+r[3]-+r[2];return `<tr><td><span class="rank-badge ${i===0?'top':''}">${i+1}</span></td><td>${escapeHtml(r[0])}</td><td style="color:${MUTED};font-size:12px">${escapeHtml(r[1])}</td><td class="num">${r[2]}</td><td class="num"><b>${r[3]}</b></td><td class="num"><span class="delta" style="color:${d>=0?GREEN:RED}">${d>=0?'+':''}${d}</span></td></tr>`;}).join('');
+
+  document.getElementById('findings').innerHTML=DATA.findings.map(f=>`<li>${boldFirst(f)}</li>`).join('');
+  document.getElementById('limits').innerHTML=DATA.limits.map(f=>`<li>${boldFirst(f)}</li>`).join('');
+
+  renderCharts();
+}
+
+/* ============ CHARTS ============ */
+function destroy(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function renderCharts(){
+  if(typeof Chart==='undefined')return;
+  Chart.defaults.font.family="Inter, sans-serif";Chart.defaults.font.size=12;Chart.defaults.color=MUTED;
+  const m=DATA.meta;
+
+  destroy('cFunnel');
+  charts.cFunnel=new Chart(cFunnel,{type:'bar',data:{labels:['Populasi (÷100)','Hadir','Pre-test','Post-test','Pasangan'],
+    datasets:[{data:[Math.round(m.population/100),m.attendees,m.preCount,m.postCount,m.pairs],backgroundColor:[BLUE2+'55',BLUE,BLUE2,AMBER,GREEN],borderRadius:6,maxBarThickness:46}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataIndex===0?'≈'+nf(m.population)+' pegawai':nf(c.parsed.x)+' orang'}}},scales:{x:{grid:{color:GRID}},y:{grid:{display:false}}}}});
+
+  destroy('cClean');const cl=DATA.cleaning;
+  charts.cClean=new Chart(cClean,{type:'bar',data:{labels:['KEHADIRAN','PRE','POST'],datasets:[
+    {label:'Valid',data:[cl.kehadiranValid,cl.preValid,cl.postValid],backgroundColor:BLUE,borderRadius:5,stack:'s'},
+    {label:'Junk + duplikat',data:[cl.kehadiranRaw-cl.kehadiranValid,cl.preRaw-cl.preValid,cl.postRaw-cl.postValid],backgroundColor:AMBER+'cc',borderRadius:5,stack:'s'}]},
+    options:{plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:GRID}}}}});
+
+  destroy('cDist');
+  const buckets=[...new Set([...DATA.preDist.map(x=>x.s),...DATA.postDist.map(x=>x.s)])].sort((a,b)=>a-b);
+  const pm=Object.fromEntries(DATA.preDist.map(x=>[x.s,x.n])),qm=Object.fromEntries(DATA.postDist.map(x=>[x.s,x.n]));
+  const pt=DATA.preDist.reduce((a,x)=>a+ +x.n,0),qt=DATA.postDist.reduce((a,x)=>a+ +x.n,0);
+  charts.cDist=new Chart(cDist,{type:'bar',data:{labels:buckets,datasets:[
+    {label:`Pre-test (n=${pt})`,data:buckets.map(b=>pm[b]||0),backgroundColor:BLUE2+'aa',borderRadius:4},
+    {label:`Post-test (n=${qt})`,data:buckets.map(b=>qm[b]||0),backgroundColor:AMBER,borderRadius:4}]},
+    options:{plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}}},scales:{x:{grid:{display:false},title:{display:true,text:'Skor',color:MUTED}},y:{grid:{color:GRID},title:{display:true,text:'Jumlah peserta',color:MUTED}}}}});
+
+  destroy('cGain');const gd=[...DATA.gainDist].sort((a,b)=>a.d-b.d);
+  charts.cGain=new Chart(cGain,{type:'bar',data:{labels:gd.map(x=>(x.d>0?'+':'')+x.d),datasets:[{data:gd.map(x=>x.n),backgroundColor:gd.map(x=>x.d<0?RED:(x.d===0?MUTED+'99':GREEN)),borderRadius:5,maxBarThickness:60}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+' peserta'}}},scales:{x:{grid:{display:false},title:{display:true,text:'Perubahan skor (post − pre)',color:MUTED}},y:{grid:{color:GRID},title:{display:true,text:'Jumlah peserta',color:MUTED}}}}});
+
+  destroy('cDonut');const L=DATA.learning,tot=+L.improved+ +L.same+ +L.declined;
+  charts.cDonut=new Chart(cDonut,{type:'doughnut',data:{labels:[`Meningkat (${L.improved})`,`Tetap (${L.same})`,`Menurun (${L.declined})`],datasets:[{data:[L.improved,L.same,L.declined],backgroundColor:[GREEN,BLUE2+'77',RED],borderWidth:2,borderColor:'#fff'}]},
+    options:{cutout:'62%',plugins:{legend:{position:'right',labels:{boxWidth:12,usePointStyle:true,padding:14}},tooltip:{callbacks:{label:c=>c.label+' · '+dec(pct(c.parsed,tot),1)+'%'}}}}});
+
+  destroy('cTopics');const tp=[...DATA.topics].sort((a,b)=>b.mean-a.mean);
+  charts.cTopics=new Chart(cTopics,{type:'bar',data:{labels:tp.map(t=>t.label),datasets:[{data:tp.map(t=>+t.mean),backgroundColor:tp.map(t=>scaleCat(+t.mean).color),borderRadius:5,maxBarThickness:20}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Rata-rata '+dec(c.parsed.x,2)+' / 5 · '+scaleCat(c.parsed.x).label}}},scales:{x:{min:3.8,max:4.4,grid:{color:GRID},title:{display:true,text:'Rata-rata (skala 1–5)',color:MUTED}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+
+  destroy('cQA');const q=DATA.qa,notAsk=Math.max(q.attendeesLive-q.questioners,0);
+  charts.cQA=new Chart(cQA,{type:'doughnut',data:{labels:[`Bertanya (${q.questioners})`,`Tidak bertanya (${notAsk})`],datasets:[{data:[q.questioners,notAsk],backgroundColor:[AMBER,'#dce3ec'],borderWidth:2,borderColor:'#fff'}]},
+    options:{cutout:'64%',plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true,padding:12}},tooltip:{callbacks:{label:c=>c.label+' · '+dec(pct(c.parsed,q.attendeesLive),1)+'%'}}}}});
+
+  destroy('cFbCat');const items=DATA.feedbackItems;const cc={};CATS.forEach(c=>cc[c]=0);items.forEach(it=>cc[it.cat]=(cc[it.cat]||0)+1);
+  const order=CATS.filter(c=>cc[c]>0);
+  charts.cFbCat=new Chart(cFbCat,{type:'doughnut',data:{labels:order.map(c=>`${c} (${cc[c]})`),datasets:[{data:order.map(c=>cc[c]),backgroundColor:order.map(c=>CATCOLORS[c]),borderWidth:2,borderColor:'#fff'}]},
+    options:{cutout:'58%',plugins:{legend:{position:'right',labels:{boxWidth:12,usePointStyle:true,padding:12}},tooltip:{callbacks:{label:c=>c.label+' · '+dec(pct(c.parsed,items.length),1)+'%'}}}}});
+
+  destroy('cUnits');const un=[...DATA.units].sort((a,b)=>b[1]-a[1]);
+  charts.cUnits=new Chart(cUnits,{type:'bar',data:{labels:un.map(u=>u[0]),datasets:[{data:un.map(u=>u[1]),backgroundColor:un.map((u,i)=>i===0?NAVY:BLUE2),borderRadius:5,maxBarThickness:20}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+' peserta'}}},scales:{x:{grid:{color:GRID},title:{display:true,text:'Jumlah peserta hadir',color:MUTED}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+}
+
+/* ============ EDITOR ============ */
+function buildEditor(){
+  const g=document.getElementById('editorGrid');g.innerHTML='';
+  g.appendChild(card('full','1 · Identitas & angka utama','Persentase & funnel dihitung otomatis dari sini.',fieldGrid([
+    txt('Judul','meta.title'),txt('Tanggal & waktu','meta.date'),txt('Sumber data','meta.source'),txt('Sub-judul','meta.subtitle','textarea'),
+    numF('Populasi pegawai','meta.population'),numF('Peserta hadir (roster)','meta.attendees'),numF('Mengisi pre-test','meta.preCount'),numF('Mengisi post-test','meta.postCount'),
+    numF('Mengisi feedback','meta.feedbackCount'),numF('Pasangan pre+post','meta.pairs')])));
+
+  g.appendChild(card('','2 · Pembersihan data','"Junk + duplikat" = mentah − valid (otomatis).',fieldGrid([
+    numF('KEHADIRAN — mentah','cleaning.kehadiranRaw'),numF('KEHADIRAN — valid','cleaning.kehadiranValid'),
+    numF('PRE — mentah','cleaning.preRaw'),numF('PRE — valid','cleaning.preValid'),
+    numF('POST — mentah','cleaning.postRaw'),numF('POST — valid','cleaning.postValid')])));
+
+  g.appendChild(card('','3 · Efektivitas pembelajaran','Selisih dihitung otomatis.',fieldGrid([
+    numF('Rata-rata pre','learning.preMean',0.01),numF('Rata-rata post','learning.postMean',0.01),
+    numF('Meningkat','learning.improved'),numF('Tetap','learning.same'),numF('Menurun','learning.declined'),
+    numF('Skor min pre','learning.preMin'),numF('Skor min post','learning.postMin'),
+    numF('Pre = 100','learning.ceilingPre100'),numF('Pre < 100','learning.ceilingLt100'),numF('Pre<100 meningkat','learning.ceilingLt100Improved')])));
+
+  g.appendChild(card('','4 · Skor sempurna (ringkasan)','Jumlah peserta skor 100.',fieldGrid([
+    numF('Nilai 100 — pre','perfect.pre'),numF('Nilai 100 — post','perfect.post')])));
+  g.appendChild(card('full','5 · Daftar skor sempurna (pre & post)','Nama & unit peserta yang 100 di kedua tes.',pairTable('perfectList','Nama','Unit',['Nama','Unit'],true)));
+
+  g.appendChild(card('','6 · Distribusi skor pre-test','Jumlah peserta per skor.',arrTable('preDist',[['s','Skor','num'],['n','Jumlah','num']],{s:100,n:0})));
+  g.appendChild(card('','7 · Distribusi skor post-test','Jumlah peserta per skor.',arrTable('postDist',[['s','Skor','num'],['n','Jumlah','num']],{s:100,n:0})));
+  g.appendChild(card('','8 · Perubahan skor per individu','Selisih (post−pre) & jumlah. Boleh negatif.',arrTable('gainDist',[['d','Perubahan','num'],['n','Jumlah','num']],{d:0,n:0})));
+  g.appendChild(card('','9 · Penilaian per dimensi','Rata-rata 1–5. Urutan grafik otomatis.',arrTable('topics',[['label','Dimensi','txt'],['mean','Rata-rata','num']],{label:'Dimensi baru',mean:4.0})));
+  g.appendChild(card('','10 · Skala penilaian','Ambang bawah & label kategori. Warna boleh hex.',arrTable('ratingLegend',[['min','Ambang ≥','num'],['label','Kategori','txt'],['color','Warna','txt']],{min:0,label:'Kategori',color:'#999999'})));
+
+  g.appendChild(card('','11 · Keaktifan tanya-jawab','Dipakai untuk donut keaktifan.',fieldGrid([
+    numF('Peserta hadir (live Zoom)','qa.attendeesLive'),numF('Peserta yang bertanya','qa.questioners'),numF('Total pertanyaan','qa.questions')])));
+  g.appendChild(card('full','12 · Daftar pertanyaan (chat Zoom)','Waktu, penanya, unit, dan inti pertanyaan.',quadTable('chatQuestions',['Waktu','Penanya','Unit','Pertanyaan'],['00:00','Nama','Unit','Pertanyaan'])));
+
+  g.appendChild(card('full','13 · Respons feedback','Edit teks, ubah kategori/jenis, tambah/hapus baris.',fbTable()));
+
+  g.appendChild(card('','14 · Kekuatan (Strengths)','Satu poin per baris.',listTable('strengths','Kekuatan','Kekuatan baru')));
+  g.appendChild(card('','15 · Area Perbaikan','Satu poin per baris.',listTable('improvements','Area perbaikan','Area perbaikan baru')));
+  g.appendChild(card('full','16 · Rekomendasi','Satu poin per baris.',listTable('recommendations','Rekomendasi','Rekomendasi baru')));
+
+  g.appendChild(card('','17 · Unit kerja terbanyak','Nama unit & jumlah hadir.',pairTable('units','Unit','Jumlah',['Unit baru',1])));
+  g.appendChild(card('','18 · Peserta teratas (skor)','Nama, unit, pre, post.',quadTable('ranking',['Nama','Unit','Pre','Post'],['Nama','Unit',0,0],[false,false,true,true])));
+
+  g.appendChild(card('','19 · Temuan utama','Format "Judul — penjelasan".',listTable('findings','Temuan','Temuan baru — penjelasan')));
+  g.appendChild(card('','20 · Keterbatasan data','Format "Judul — penjelasan".',listTable('limits','Keterbatasan','Keterbatasan baru — penjelasan')));
+  g.appendChild(card('','21 · Catatan positif feedback (ringkas)','Kalimat ringkas.',fieldGrid([txt('Catatan positif','feedbackPositive','textarea')])));
+}
+
+function card(extra,title,hint,body){const c=document.createElement('div');c.className='ed-card'+(extra?' '+extra:'');const hh=title.split(' · ')[0],tt=title.split(' · ').slice(1).join(' · ');c.innerHTML=`<h3><span class="hh">${hh}</span> ${tt}</h3><p class="hint">${hint}</p>`;c.appendChild(body);return c;}
+function fieldGrid(f){const d=document.createElement('div');d.className='field-grid';f.forEach(x=>d.appendChild(x));return d;}
+function getPath(p){return p.split('.').reduce((o,k)=>o[k],DATA);}
+function setPath(p,v){const ks=p.split('.');const last=ks.pop();ks.reduce((o,k)=>o[k],DATA)[last]=v;}
+function txt(label,path,type){const w=document.createElement('div');w.className='field'+(type==='textarea'?' wide':'');const inp=document.createElement(type==='textarea'?'textarea':'input');if(type==='textarea')inp.rows=2;inp.value=getPath(path);inp.addEventListener('input',()=>{setPath(path,inp.value);commit(false);});w.innerHTML=`<label>${label}</label>`;w.appendChild(inp);return w;}
+function numF(label,path,step){const w=document.createElement('div');w.className='field';const inp=document.createElement('input');inp.type='number';if(step)inp.step=step;inp.value=getPath(path);inp.addEventListener('input',()=>{const v=parseFloat(inp.value);setPath(path,isNaN(v)?0:v);commit(false);});w.innerHTML=`<label>${label}</label>`;w.appendChild(inp);return w;}
+
+function arrTable(key,cols,blank){const wrap=document.createElement('div'),t=document.createElement('table');t.className='etbl';
+  t.innerHTML='<thead><tr>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'<th></th></tr></thead>';const tb=document.createElement('tbody');t.appendChild(tb);
+  function draw(){tb.innerHTML='';DATA[key].forEach((row,ri)=>{const tr=document.createElement('tr');
+    cols.forEach(c=>{const td=document.createElement('td'),inp=document.createElement('input');inp.className=c[2]==='num'?'num':'';if(c[2]==='num'){inp.type='number';if(c[0]==='mean'||c[0]==='min')inp.step='0.01';}inp.value=row[c[0]];
+      inp.addEventListener('input',()=>{row[c[0]]=c[2]==='num'?(parseFloat(inp.value)||0):inp.value;commit(false);});td.appendChild(inp);tr.appendChild(td);});
+    tr.appendChild(delCell(()=>{DATA[key].splice(ri,1);commit();draw();}));tb.appendChild(tr);});}
+  draw();wrap.appendChild(t);wrap.appendChild(addBtn('+ Tambah baris',()=>{DATA[key].push({...blank});commit();draw();}));return wrap;}
+
+function pairTable(key,l1,l2,blank,asObjList){const wrap=document.createElement('div'),t=document.createElement('table');t.className='etbl';
+  t.innerHTML=`<thead><tr><th>${l1}</th><th>${l2}</th><th></th></tr></thead>`;const tb=document.createElement('tbody');t.appendChild(tb);
+  const arr=asObjList?DATA.perfect.list:DATA[key];
+  function draw(){tb.innerHTML='';arr.forEach((row,ri)=>{const tr=document.createElement('tr');
+    [0,1].forEach(idx=>{const td=document.createElement('td'),inp=document.createElement('input');if(idx===1&&!asObjList&&typeof row[1]==='number'){inp.type='number';inp.className='num';}inp.value=row[idx];
+      inp.addEventListener('input',()=>{row[idx]=(inp.type==='number')?(parseFloat(inp.value)||0):inp.value;commit(false);});td.appendChild(inp);tr.appendChild(td);});
+    tr.appendChild(delCell(()=>{arr.splice(ri,1);commit();draw();}));tb.appendChild(tr);});}
+  draw();wrap.appendChild(t);wrap.appendChild(addBtn('+ Tambah baris',()=>{arr.push([...blank]);commit();draw();}));return wrap;}
+
+function quadTable(key,heads,blank,numFlags){const wrap=document.createElement('div'),t=document.createElement('table');t.className='etbl';
+  t.innerHTML='<thead><tr>'+heads.map(h=>`<th>${h}</th>`).join('')+'<th></th></tr></thead>';const tb=document.createElement('tbody');t.appendChild(tb);
+  function draw(){tb.innerHTML='';DATA[key].forEach((row,ri)=>{const tr=document.createElement('tr');
+    heads.forEach((h,idx)=>{const td=document.createElement('td');const isNum=numFlags&&numFlags[idx];const long=(h==='Pertanyaan');const inp=document.createElement(long?'textarea':'input');
+      if(isNum){inp.type='number';inp.className='num';}inp.value=row[idx];if(long)inp.rows=2;
+      inp.addEventListener('input',()=>{row[idx]=isNum?(parseFloat(inp.value)||0):inp.value;commit(false);});td.appendChild(inp);tr.appendChild(td);});
+    tr.appendChild(delCell(()=>{DATA[key].splice(ri,1);commit();draw();}));tb.appendChild(tr);});}
+  draw();wrap.appendChild(t);wrap.appendChild(addBtn('+ Tambah baris',()=>{DATA[key].push([...blank]);commit();draw();}));return wrap;}
+
+function fbTable(){const wrap=document.createElement('div'),t=document.createElement('table');t.className='etbl';
+  t.innerHTML='<thead><tr><th style="width:62%">Teks feedback</th><th>Kategori</th><th>Jenis</th><th></th></tr></thead>';const tb=document.createElement('tbody');t.appendChild(tb);
+  function draw(){tb.innerHTML='';DATA.feedbackItems.forEach((it,ri)=>{const tr=document.createElement('tr');
+    const td1=document.createElement('td'),ta=document.createElement('textarea');ta.rows=2;ta.value=it.text;ta.addEventListener('input',()=>{it.text=ta.value;commit(false);});td1.appendChild(ta);tr.appendChild(td1);
+    tr.appendChild(selCell(CATS,it.cat,v=>{it.cat=v;commit();}));
+    tr.appendChild(selCell(SENTS,it.sent,v=>{it.sent=v;commit();}));
+    tr.appendChild(delCell(()=>{DATA.feedbackItems.splice(ri,1);commit();draw();}));tb.appendChild(tr);});}
+  draw();wrap.appendChild(t);wrap.appendChild(addBtn('+ Tambah feedback',()=>{DATA.feedbackItems.push({text:'',cat:'Materi',sent:'Saran'});commit();draw();}));return wrap;}
+
+function listTable(key,label,blank){const wrap=document.createElement('div'),t=document.createElement('table');t.className='etbl';
+  t.innerHTML=`<thead><tr><th>${label}</th><th></th></tr></thead>`;const tb=document.createElement('tbody');t.appendChild(tb);
+  function draw(){tb.innerHTML='';DATA[key].forEach((v,ri)=>{const tr=document.createElement('tr');
+    const td=document.createElement('td'),ta=document.createElement('textarea');ta.rows=2;ta.value=v;ta.addEventListener('input',()=>{DATA[key][ri]=ta.value;commit(false);});td.appendChild(ta);tr.appendChild(td);
+    tr.appendChild(delCell(()=>{DATA[key].splice(ri,1);commit();draw();}));tb.appendChild(tr);});}
+  draw();wrap.appendChild(t);wrap.appendChild(addBtn('+ Tambah',()=>{DATA[key].push(blank);commit();draw();}));return wrap;}
+
+function delCell(fn){const td=document.createElement('td'),b=document.createElement('button');b.className='del';b.textContent='×';b.onclick=fn;td.appendChild(b);return td;}
+function selCell(opts,val,fn){const td=document.createElement('td'),s=document.createElement('select');opts.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});s.addEventListener('change',()=>fn(s.value));td.appendChild(s);return td;}
+function addBtn(label,fn){const b=document.createElement('button');b.className='add-row';b.textContent=label;b.onclick=fn;return b;}
+
+let rerenderTimer=null;
+function commit(immediate=true){save();clearTimeout(rerenderTimer);rerenderTimer=setTimeout(renderDashboard,immediate?0:250);}
+
+/* ============ TOOLBAR ============ */
+function switchView(v){document.getElementById('view-dash').classList.toggle('active',v==='dash');document.getElementById('view-editor').classList.toggle('active',v==='editor');document.getElementById('tab-dash').classList.toggle('active',v==='dash');document.getElementById('tab-editor').classList.toggle('active',v==='editor');if(v==='dash')renderDashboard();window.scrollTo({top:0,behavior:'smooth'});}
+function exportJSON(){const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data_dashboard_webinar1.json';a.click();URL.revokeObjectURL(a.href);toast('Data diekspor sebagai JSON');}
+function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{DATA=mergeDefaults(JSON.parse(r.result));save();buildEditor();renderDashboard();toast('Data berhasil diimpor');}catch(err){toast('Gagal membaca file JSON');}};r.readAsText(f);e.target.value='';}
+function resetData(){if(!confirm('Kembalikan semua angka & teks ke hasil analisis awal? Perubahan Anda akan hilang.'))return;DATA=deepCopy(DEFAULTS);save();buildEditor();renderDashboard();toast('Direset ke data asli');}
+let toastTimer=null;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);}
+
+function init(){buildEditor();renderDashboard();setSaved(true);}
+if(typeof Chart!=='undefined'){init();}else{window.addEventListener('load',init);setTimeout(()=>{if(!charts.cFunnel)init();},1500);}
+</script>
+</body>
+</html>
